@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import Image from 'next/image';
 
 // Define the schema for certificate creation
 const certificateSchema = z.object({
@@ -53,7 +54,7 @@ export default function CreateCertificatePage() {
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
       </div>
     );
   }
@@ -77,9 +78,15 @@ export default function CreateCertificatePage() {
         throw new Error(result.error || 'Failed to create certificate');
       }
 
+      // Check if certificateId exists in the response
+      if (!result.certificateId) {
+        throw new Error('Certificate ID not returned from server');
+      }
+
       // Redirect to the certificate detail page
       router.push(`/admin/certificate/${result.certificateId}`);
     } catch (err) {
+      console.error('Certificate creation error:', err);
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       setIsSubmitting(false);
     }
@@ -87,19 +94,26 @@ export default function CreateCertificatePage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="bg-blue-600 text-white p-6">
+      <header className="bg-white shadow-md text-gray-800 p-6">
         <div className="container mx-auto flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold hover:text-blue-100 transition-colors">
-            Certificate Validator
+          <Link href="/admin" className="flex items-center hover:text-green-600 transition-colors">
+            <Image 
+              src="/unique.svg" 
+              alt="Unique Logo" 
+              width={40} 
+              height={40} 
+              className="mr-3"
+            />
+            <span className="text-2xl font-bold text-green-600">Unique Validation</span>
           </Link>
           <div className="flex items-center space-x-4">
-            <span className="text-white bg-blue-700 px-3 py-1 rounded-md text-sm">Admin Portal</span>
+            <span className="text-white bg-green-600 px-3 py-1 rounded-md text-sm">Admin Portal</span>
             <button 
               onClick={() => {
                 fetch('/api/auth/signout', { method: 'POST' })
                   .then(() => router.push('/login'));
               }}
-              className="text-white bg-red-600 px-3 py-1 rounded-md text-sm hover:bg-red-700"
+              className="text-green-600 hover:text-green-800 transition-colors"
             >
               Sign Out
             </button>
@@ -108,27 +122,16 @@ export default function CreateCertificatePage() {
       </header>
 
       <main className="flex-grow container mx-auto p-6">
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-800">Create Certificate</h2>
-            <Link 
-              href="/admin" 
-              className="text-blue-600 hover:text-blue-800 flex items-center"
-            >
-              <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Back to Dashboard
-            </Link>
-          </div>
-
+        <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
+          <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Create New Certificate</h2>
+          
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
               <p className="font-medium">Error</p>
               <p>{error}</p>
             </div>
           )}
-
+          
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
               <label htmlFor="studentName" className="block text-sm font-medium text-gray-700 mb-1">
@@ -138,13 +141,14 @@ export default function CreateCertificatePage() {
                 id="studentName"
                 type="text"
                 {...register('studentName')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="Enter student name"
               />
               {errors.studentName && (
                 <p className="mt-1 text-sm text-red-600">{errors.studentName.message}</p>
               )}
             </div>
-
+            
             <div>
               <label htmlFor="courseName" className="block text-sm font-medium text-gray-700 mb-1">
                 Course Name *
@@ -153,13 +157,14 @@ export default function CreateCertificatePage() {
                 id="courseName"
                 type="text"
                 {...register('courseName')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="Enter course name"
               />
               {errors.courseName && (
                 <p className="mt-1 text-sm text-red-600">{errors.courseName.message}</p>
               )}
             </div>
-
+            
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email (Optional)
@@ -168,13 +173,14 @@ export default function CreateCertificatePage() {
                 id="email"
                 type="email"
                 {...register('email')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="Enter email address"
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
               )}
             </div>
-
+            
             <div>
               <label htmlFor="issueDate" className="block text-sm font-medium text-gray-700 mb-1">
                 Issue Date *
@@ -183,13 +189,13 @@ export default function CreateCertificatePage() {
                 id="issueDate"
                 type="date"
                 {...register('issueDate')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               />
               {errors.issueDate && (
                 <p className="mt-1 text-sm text-red-600">{errors.issueDate.message}</p>
               )}
             </div>
-
+            
             <div>
               <label htmlFor="expiryDate" className="block text-sm font-medium text-gray-700 mb-1">
                 Expiry Date (Optional)
@@ -198,18 +204,24 @@ export default function CreateCertificatePage() {
                 id="expiryDate"
                 type="date"
                 {...register('expiryDate')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               />
               {errors.expiryDate && (
                 <p className="mt-1 text-sm text-red-600">{errors.expiryDate.message}</p>
               )}
             </div>
-
-            <div className="pt-4">
+            
+            <div className="flex justify-end space-x-4">
+              <Link
+                href="/admin"
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </Link>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700 transition-colors disabled:opacity-70"
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50"
               >
                 {isSubmitting ? 'Creating...' : 'Create Certificate'}
               </button>
@@ -220,7 +232,7 @@ export default function CreateCertificatePage() {
 
       <footer className="bg-gray-100 p-6 text-center text-gray-600">
         <div className="container mx-auto">
-          <p>&copy; {new Date().getFullYear()} Certificate Validator. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Unique Validation. All rights reserved.</p>
         </div>
       </footer>
     </div>
