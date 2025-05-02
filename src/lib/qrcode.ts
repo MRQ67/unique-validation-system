@@ -1,9 +1,17 @@
 import QRCode from 'qrcode';
 
-// Generate QR code as data URL
+// Get the base URL from environment or default to localhost
+const getBaseUrl = (): string => {
+  return process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+};
+
+// Generate QR code as data URL with absolute URL
 export async function generateQRCode(text: string, transparent: boolean = false): Promise<string> {
   try {
-    const qrCodeDataUrl = await QRCode.toDataURL(text, {
+    // If the text is a relative URL (starts with /), make it absolute
+    const qrText = text.startsWith('/') ? `${getBaseUrl()}${text}` : text;
+    
+    const qrCodeDataUrl = await QRCode.toDataURL(qrText, {
       errorCorrectionLevel: 'H',
       margin: 1,
       width: 200,
@@ -19,10 +27,13 @@ export async function generateQRCode(text: string, transparent: boolean = false)
   }
 }
 
-// Generate QR code as SVG string
+// Generate QR code as SVG string with absolute URL
 export async function generateQRCodeSVG(text: string, transparent: boolean = false): Promise<string> {
   try {
-    const qrCodeSvg = await QRCode.toString(text, {
+    // If the text is a relative URL (starts with /), make it absolute
+    const qrText = text.startsWith('/') ? `${getBaseUrl()}${text}` : text;
+    
+    const qrCodeSvg = await QRCode.toString(qrText, {
       type: 'svg',
       errorCorrectionLevel: 'H',
       margin: 1,

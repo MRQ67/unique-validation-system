@@ -70,9 +70,9 @@ export default function ValidatePage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="bg-green-600 text-white p-6">
+      <header className="bg-white shadow-md text-gray-800 p-6">
         <div className="container mx-auto flex justify-between items-center">
-          <Link href="/" className="flex items-center hover:text-green-100 transition-colors">
+          <Link href="/" className="flex items-center hover:text-green-600 transition-colors">
             <Image 
               src="/unique.svg" 
               alt="Unique Logo" 
@@ -80,7 +80,7 @@ export default function ValidatePage() {
               height={40} 
               className="mr-3"
             />
-            <span className="text-2xl font-bold">Unique Validation</span>
+            <span className="text-2xl font-bold text-green-600">Unique Validation</span>
           </Link>
         </div>
       </header>

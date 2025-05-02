@@ -51,40 +51,73 @@ Use these credentials to access the admin portal:
 - **Username**: abdellah
 - **Password**: abde123
 
-## Demo Flow
+## Deployment to Vercel
 
-1. **Home Page**: Enter a certificate ID or scan a QR code
-2. **Admin Login**: Access the admin portal at `/login` (after navigating to `/admin`)
-3. **Admin Dashboard**: View all certificates
-4. **Create Certificate**: Generate a new certificate with student details
-5. **Certificate Detail**: View, download and share certificates
+This application is optimized for deployment on Vercel. Follow these steps to deploy:
 
-## Deployment
+1. **Push your code to GitHub**:
+   ```bash
+   git add .
+   git commit -m "Ready for production deployment"
+   git push
+   ```
 
-This application is ready to deploy on Vercel:
+2. **Connect to Vercel**:
+   - Log in to [Vercel](https://vercel.com)
+   - Create a new project and import your GitHub repository
+   - Configure the project settings:
+     - Framework Preset: Next.js
+     - Root Directory: ./
 
-1. Push to GitHub
-2. Connect to Vercel
-3. Set the `NEXTAUTH_SECRET` environment variable
-4. Deploy!
+3. **Set Environment Variables**:
+   In the Vercel dashboard, add these environment variables:
+   ```
+   NEXTAUTH_SECRET=<generate-a-secure-random-string>
+   NEXTAUTH_URL=https://your-vercel-domain.vercel.app
+   NEXT_PUBLIC_BASE_URL=https://your-vercel-domain.vercel.app
+   ```
 
-## Project Structure
+4. **Deploy**:
+   - Click "Deploy" and wait for the build to complete
+   - Your application will be available at the provided Vercel URL
 
-- `/src/app`: Next.js App Router pages
-- `/src/components`: Reusable React components
-- `/src/lib`: Utility functions and business logic
-  - `db.ts`: Mock database implementation
-  - `qrcode.ts`: QR code generation utilities
-  - `certificate.ts`: Certificate template generation
-  - `auth.ts`: NextAuth.js configuration
+## Production Database Setup
+
+The application currently uses an in-memory database which resets when the server restarts. For production use, follow these steps to integrate with Vercel KV:
+
+1. **Add Vercel KV to your project**:
+   ```bash
+   npx vercel link
+   npx vercel add kv
+   ```
+
+2. **Install the KV package**:
+   ```bash
+   npm install @vercel/kv
+   ```
+
+3. **Update the database implementation**:
+   - The `src/lib/db.ts` file is already prepared with placeholders for Vercel KV
+   - Uncomment the KV implementation code and import the KV client
 
 ## Branding
 
-The application uses the Unique branding with a green color scheme and the Unique logo. The admin panel is hidden from the main navigation for security purposes and is only accessible by directly navigating to `/admin`.
+The application uses the Unique branding with:
+- Green color scheme (#10B981) for buttons and accents
+- White navbar with green text
+- Inter font for modern typography
+- Unique logo in the header
 
-## Future Enhancements
+## Security Notes
 
-- Replace mock database with Vercel KV or another database
-- Add email notifications for certificate issuance
-- Implement certificate revocation workflow
-- Add analytics for certificate verification
+- Admin routes are protected by authentication middleware
+- Admin panel is hidden from navigation for security
+- QR codes use absolute URLs in production for proper validation
+- For a production environment, consider implementing:
+  - Rate limiting
+  - CSRF protection
+  - More robust authentication
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

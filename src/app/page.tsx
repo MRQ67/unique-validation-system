@@ -20,7 +20,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="bg-green-600 text-white p-6">
+      <header className="bg-white shadow-md text-gray-800 p-6">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center">
             <Image 
@@ -30,7 +30,7 @@ export default function Home() {
               height={40} 
               className="mr-3"
             />
-            <h1 className="text-2xl font-bold">Unique Validation</h1>
+            <h1 className="text-2xl font-bold text-green-600">Unique Validation</h1>
           </div>
         </div>
       </header>
