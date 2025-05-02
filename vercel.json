@@ -1,6 +1,6 @@
 {
-  "buildCommand": "npm install --legacy-peer-deps && npm run build",
-  "installCommand": "npm install --legacy-peer-deps tailwindcss postcss autoprefixer",
-  "framework": "nextjs",
+  "buildCommand": "cd $VERCEL_ROOT && npm install --no-save tailwindcss postcss autoprefixer && npm run build",
+  "installCommand": "npm install --legacy-peer-deps",
+  "framework": null,
   "outputDirectory": ".next"
 }
