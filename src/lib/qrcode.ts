@@ -1,7 +1,7 @@
 import QRCode from 'qrcode';
 
 // Generate QR code as data URL
-export async function generateQRCode(text: string): Promise<string> {
+export async function generateQRCode(text: string, transparent: boolean = false): Promise<string> {
   try {
     const qrCodeDataUrl = await QRCode.toDataURL(text, {
       errorCorrectionLevel: 'H',
@@ -9,7 +9,7 @@ export async function generateQRCode(text: string): Promise<string> {
       width: 200,
       color: {
         dark: '#000000',
-        light: '#ffffff'
+        light: transparent ? '#00000000' : '#ffffff'
       }
     });
     return qrCodeDataUrl;
@@ -20,7 +20,7 @@ export async function generateQRCode(text: string): Promise<string> {
 }
 
 // Generate QR code as SVG string
-export async function generateQRCodeSVG(text: string): Promise<string> {
+export async function generateQRCodeSVG(text: string, transparent: boolean = false): Promise<string> {
   try {
     const qrCodeSvg = await QRCode.toString(text, {
       type: 'svg',
@@ -29,7 +29,7 @@ export async function generateQRCodeSVG(text: string): Promise<string> {
       width: 200,
       color: {
         dark: '#000000',
-        light: '#ffffff'
+        light: transparent ? '#00000000' : '#ffffff'
       }
     });
     return qrCodeSvg;

@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 interface Certificate {
   certificateId: string;
@@ -15,30 +17,40 @@ interface Certificate {
 }
 
 export default function AdminPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCertificates = async () => {
-      try {
-        const response = await fetch('/api/certificates/list');
-        const data = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to fetch certificates');
-        }
-        
-        setCertificates(data.certificates);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An unexpected error occurred');
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Redirect to login if not authenticated
+    if (status === 'unauthenticated') {
+      router.push('/login');
+      return;
+    }
 
-    fetchCertificates();
-  }, []);
+    if (status === 'authenticated') {
+      fetchCertificates();
+    }
+  }, [status, router]);
+
+  const fetchCertificates = async () => {
+    try {
+      const response = await fetch('/api/certificates/list');
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch certificates');
+      }
+      
+      setCertificates(data.certificates);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -62,6 +74,14 @@ export default function AdminPage() {
     }
   };
 
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="bg-blue-600 text-white p-6">
@@ -71,6 +91,15 @@ export default function AdminPage() {
           </Link>
           <div className="flex items-center space-x-4">
             <span className="text-white bg-blue-700 px-3 py-1 rounded-md text-sm">Admin Portal</span>
+            <button 
+              onClick={() => {
+                fetch('/api/auth/signout', { method: 'POST' })
+                  .then(() => router.push('/login'));
+              }}
+              className="text-white bg-red-600 px-3 py-1 rounded-md text-sm hover:bg-red-700"
+            >
+              Sign Out
+            </button>
           </div>
         </div>
       </header>

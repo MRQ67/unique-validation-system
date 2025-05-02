@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 interface Certificate {
   certificateId: string;
@@ -21,8 +22,10 @@ interface ValidationResult {
   error?: string;
 }
 
-export default function ValidateByIdPage({ params }: { params: { id: string } }) {
-  const certificateId = params.id;
+export default function ValidateByIdPage() {
+  // Use the useParams hook to get the id parameter from the URL
+  const params = useParams();
+  const certificateId = params?.id as string;
   
   const [result, setResult] = useState<ValidationResult | null>(null);
   const [loading, setLoading] = useState(false);
