@@ -1,6 +1,5 @@
 {
-  "buildCommand": "cd $VERCEL_ROOT && npm install --no-save tailwindcss postcss autoprefixer && npm run build",
+  "buildCommand": "npm run build",
   "installCommand": "npm install --legacy-peer-deps",
-  "framework": null,
-  "outputDirectory": ".next"
+  "framework": "nextjs"
 }
