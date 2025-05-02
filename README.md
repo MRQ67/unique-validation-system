@@ -1,11 +1,11 @@
-# Certificate Validation System
+# Unique Validation
 
 A modern web application for creating, managing, and validating e-learning certificates with QR code verification. Perfect for hackathons, demos, and educational platforms.
 
 ## Features
 
 - **Public Certificate Validation**: Verify certificates by ID or QR code scan
-- **Admin Portal**: Create and manage certificates
+- **Admin Portal**: Create and manage certificates (accessible via direct URL)
 - **QR Code Generation**: Each certificate includes a scannable QR code
 - **Certificate Downloads**: Download certificates as images
 - **Secure Authentication**: Admin-only access to management features
@@ -44,6 +44,8 @@ npm run dev
 
 ## Admin Access
 
+The admin portal is accessible only by directly navigating to the `/admin` URL.
+
 Use these credentials to access the admin portal:
 
 - **Username**: abdellah
@@ -52,7 +54,7 @@ Use these credentials to access the admin portal:
 ## Demo Flow
 
 1. **Home Page**: Enter a certificate ID or scan a QR code
-2. **Admin Login**: Access the admin portal at `/login`
+2. **Admin Login**: Access the admin portal at `/login` (after navigating to `/admin`)
 3. **Admin Dashboard**: View all certificates
 4. **Create Certificate**: Generate a new certificate with student details
 5. **Certificate Detail**: View, download and share certificates
@@ -75,6 +77,10 @@ This application is ready to deploy on Vercel:
   - `qrcode.ts`: QR code generation utilities
   - `certificate.ts`: Certificate template generation
   - `auth.ts`: NextAuth.js configuration
+
+## Branding
+
+The application uses the Unique branding with a green color scheme and the Unique logo. The admin panel is hidden from the main navigation for security purposes and is only accessible by directly navigating to `/admin`.
 
 ## Future Enhancements
 

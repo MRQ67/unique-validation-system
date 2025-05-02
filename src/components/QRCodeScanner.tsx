@@ -29,78 +29,103 @@ export default function QRCodeScanner() {
         .then(stream => {
           // Camera access granted
           setHasCamera(true);
-          // Stop the stream immediately, we'll start it again when scanning
+          // Release the camera immediately
           stream.getTracks().forEach(track => track.stop());
         })
         .catch(err => {
+          // Camera access denied or error
           console.error('Camera access error:', err);
-          setError('Unable to access camera. Please ensure you have granted camera permissions.');
           setHasCamera(false);
+          setError('Camera access denied. Please enable camera permissions and reload the page.');
         });
     } else {
-      setError('Your browser does not support camera access for QR code scanning.');
+      // Browser doesn't support camera access
       setHasCamera(false);
+      setError('Your browser does not support camera access. Please try a different browser.');
     }
-  }, []);
 
-  // Clean up when component unmounts
-  useEffect(() => {
-    return () => {
-      if (scanning && codeReader) {
-        stopScanning();
+    // Dynamically import the QR code reader library
+    const loadQrReader = async () => {
+      try {
+        const { BrowserMultiFormatReader } = await import('@zxing/browser');
+        setCodeReader(new BrowserMultiFormatReader());
+      } catch (err) {
+        console.error('Failed to load QR code scanner library:', err);
+        setError('Failed to load QR code scanner. Please try again later.');
       }
     };
-  }, [scanning, codeReader]);
 
-  const startScanning = async () => {
+    loadQrReader();
+
+    // Cleanup on component unmount
+    return () => {
+      if (codeReader) {
+        try {
+          codeReader.stopAsyncDecode();
+          codeReader.reset();
+          
+          // Also release camera resources
+          const videoElement = document.getElementById('qr-video') as HTMLVideoElement;
+          if (videoElement && videoElement.srcObject) {
+            const stream = videoElement.srcObject as MediaStream;
+            stream.getTracks().forEach(track => track.stop());
+            videoElement.srcObject = null;
+          }
+        } catch (err) {
+          console.error('Error cleaning up QR scanner:', err);
+        }
+      }
+    };
+  }, []);
+
+  const startScanning = () => {
+    if (!codeReader) {
+      setError('QR code scanner is not initialized. Please reload the page.');
+      return;
+    }
+
     setScanning(true);
     setError(null);
 
     try {
-      // Dynamically import the QR code scanner library
-      const { BrowserQRCodeReader } = await import('@zxing/browser');
-      
-      const reader = new BrowserQRCodeReader();
-      setCodeReader(reader);
-      
       const videoElement = document.getElementById('qr-video') as HTMLVideoElement;
       
-      if (!videoElement) {
-        throw new Error('Video element not found');
-      }
-
-      // Using the proper callback type
-      const controls = await reader.decodeFromVideoDevice(
-        undefined, 
-        videoElement, 
-        (result, error) => {
-          if (result) {
-            // QR code detected, extract the URL
-            const text = result.getText();
-            console.log('QR Code detected:', text);
-            
-            // Stop scanning
-            stopScanning();
-            
-            // Check if the QR code contains a valid certificate URL
-            if (text.includes('/validate/')) {
-              router.push(text);
+      // Define the callback for continuous scanning
+      const callback: DecodeContinuouslyCallback = (result, err) => {
+        if (result) {
+          // QR code detected
+          const qrText = result.getText();
+          console.log('QR code detected:', qrText);
+          
+          // Stop scanning
+          stopScanning();
+          
+          // Check if the QR code is a valid URL
+          try {
+            const url = new URL(qrText);
+            // If it's a URL, navigate to it
+            router.push(qrText);
+          } catch (e) {
+            // If it's not a URL, assume it's a certificate ID
+            if (qrText.trim()) {
+              router.push(`/validate/${encodeURIComponent(qrText.trim())}`);
             } else {
-              // Try to extract a certificate ID
-              const certificateIdMatch = text.match(/CERT-\d{4}-\d{4}/);
-              if (certificateIdMatch) {
-                router.push(`/validate?id=${certificateIdMatch[0]}`);
-              } else {
-                setError('Invalid QR code. Please scan a valid certificate QR code.');
-              }
+              setError('Invalid QR code detected. Please try again.');
+              setScanning(false);
             }
           }
-          
-          if (error) {
-            console.error('QR Code scanning error:', error);
-          }
         }
-      );
+        
+        if (err && !(err instanceof TypeError)) {
+          // Only show actual errors, not the TypeError that occurs during normal operation
+          console.error('QR scanning error:', err);
+          setError(`Error scanning QR code: ${err.message}`);
+          setScanning(false);
+        }
+      };
+      
+      // Start continuous scanning
+      codeReader.decodeFromVideoDevice(null, 'qr-video', callback);
     } catch (err) {
       console.error('Error initializing QR scanner:', err);
       setError('Failed to initialize QR code scanner. Please try again.');
@@ -150,7 +175,7 @@ export default function QRCodeScanner() {
                     playsInline
                     muted
                   ></video>
-                  <div className="absolute inset-0 border-2 border-blue-500 opacity-50 pointer-events-none"></div>
+                  <div className="absolute inset-0 border-2 border-green-500 opacity-50 pointer-events-none"></div>
                 </div>
               ) : (
                 <div className="aspect-square w-full bg-gray-100 rounded-md flex items-center justify-center">
@@ -173,7 +198,7 @@ export default function QRCodeScanner() {
               ) : (
                 <button
                   onClick={startScanning}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-md font-medium hover:bg-blue-700 transition-colors"
+                  className="bg-green-600 text-white px-6 py-2 rounded-md font-medium hover:bg-green-700 transition-colors"
                 >
                   Start Scanning
                 </button>

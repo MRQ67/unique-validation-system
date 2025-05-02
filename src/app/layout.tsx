@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Certificate Validator",
+  title: "Unique Validation",
   description: "Verify the authenticity of certificates using QR codes",
 };
 
