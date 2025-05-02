@@ -1,5 +1,5 @@
 // Database implementation with Vercel KV support
-// Fallback to in-memory storage for development/demo
+import { kv } from '@vercel/kv';
 
 export interface Certificate {
   certificateId: string;
@@ -11,7 +11,7 @@ export interface Certificate {
   email?: string;
 }
 
-// Mock database for the hackathon demo
+// Mock database for local development
 const certificates: Record<string, Certificate> = {
   'CERT-1234-5678': {
     certificateId: 'CERT-1234-5678',
@@ -42,22 +42,21 @@ const certificates: Record<string, Certificate> = {
 
 // Check if we're in production mode
 const isProduction = process.env.NODE_ENV === 'production';
+const useKV = isProduction && process.env.VERCEL_KV_URL;
 
 // Database operations
 export const db = {
   // Get certificate by ID
   getCertificate: async (id: string): Promise<Certificate | null> => {
-    if (isProduction) {
+    if (useKV) {
       try {
-        // In production, you would use Vercel KV or another database
-        // This is a placeholder for the actual implementation
-        // Example with Vercel KV: return await kv.get(`certificate:${id}`);
-        
-        // For now, we'll still use the in-memory database in production
-        return certificates[id] || null;
+        // Use Vercel KV in production
+        const certificate = await kv.get<Certificate>(`certificate:${id}`);
+        return certificate || null;
       } catch (error) {
-        console.error('Error fetching certificate:', error);
-        return null;
+        console.error('Error fetching certificate from KV:', error);
+        // Fallback to in-memory if KV fails
+        return certificates[id] || null;
       }
     }
     
@@ -67,16 +66,29 @@ export const db = {
   
   // Get all certificates
   getAllCertificates: async (): Promise<Certificate[]> => {
-    if (isProduction) {
+    if (useKV) {
       try {
-        // In production, you would use Vercel KV or another database
-        // Example with Vercel KV: return await kv.hgetall('certificates');
+        // Use Vercel KV in production
+        const certificateKeys = await kv.keys('certificate:*');
+        if (certificateKeys.length === 0) {
+          // If no certificates exist, seed with mock data in production
+          await Promise.all(
+            Object.values(certificates).map(cert => 
+              kv.set(`certificate:${cert.certificateId}`, cert)
+            )
+          );
+          return Object.values(certificates);
+        }
         
-        // For now, we'll still use the in-memory database in production
-        return Object.values(certificates);
+        const allCertificates = await Promise.all(
+          certificateKeys.map(key => kv.get<Certificate>(key))
+        );
+        
+        return allCertificates.filter(Boolean) as Certificate[];
       } catch (error) {
-        console.error('Error fetching all certificates:', error);
-        return [];
+        console.error('Error fetching all certificates from KV:', error);
+        // Fallback to in-memory if KV fails
+        return Object.values(certificates);
       }
     }
     
@@ -89,17 +101,14 @@ export const db = {
     const certificateId = `CERT-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`;
     const newCertificate = { ...certificate, certificateId };
     
-    if (isProduction) {
+    if (useKV) {
       try {
-        // In production, you would use Vercel KV or another database
-        // Example with Vercel KV: 
-        // await kv.set(`certificate:${certificateId}`, newCertificate);
-        // await kv.hset('certificates', { [certificateId]: newCertificate });
-        
-        // For now, we'll still use the in-memory database in production
-        certificates[certificateId] = newCertificate;
+        // Use Vercel KV in production
+        await kv.set(`certificate:${certificateId}`, newCertificate);
       } catch (error) {
-        console.error('Error creating certificate:', error);
+        console.error('Error creating certificate in KV:', error);
+        // Fallback to in-memory if KV fails
+        certificates[certificateId] = newCertificate;
       }
     } else {
       // In development, use in-memory database
@@ -119,18 +128,14 @@ export const db = {
     
     const updatedCertificate = { ...certificate, ...data };
     
-    if (isProduction) {
+    if (useKV) {
       try {
-        // In production, you would use Vercel KV or another database
-        // Example with Vercel KV: 
-        // await kv.set(`certificate:${id}`, updatedCertificate);
-        // await kv.hset('certificates', { [id]: updatedCertificate });
-        
-        // For now, we'll still use the in-memory database in production
-        certificates[id] = updatedCertificate;
+        // Use Vercel KV in production
+        await kv.set(`certificate:${id}`, updatedCertificate);
       } catch (error) {
-        console.error('Error updating certificate:', error);
-        return null;
+        console.error('Error updating certificate in KV:', error);
+        // Fallback to in-memory if KV fails
+        certificates[id] = updatedCertificate;
       }
     } else {
       // In development, use in-memory database

@@ -81,6 +81,22 @@ This application is optimized for deployment on Vercel. Follow these steps to de
    - Click "Deploy" and wait for the build to complete
    - Your application will be available at the provided Vercel URL
 
+## Persistent Storage with Vercel KV
+
+By default, the application uses an in-memory database which resets whenever the server restarts. To make certificates permanent and persistent across deployments, you need to set up Vercel KV:
+
+1. In your Vercel dashboard, go to the "Storage" tab
+2. Click "Create" and select "KV Database"
+3. Follow the setup instructions to create your KV database
+4. Connect it to your project
+5. Vercel will automatically add the required environment variables:
+   - `KV_URL`
+   - `KV_REST_API_URL`
+   - `KV_REST_API_TOKEN`
+   - `KV_REST_API_READ_ONLY_TOKEN`
+
+Once set up, all certificates will be stored persistently in the KV database, and they will no longer disappear after server restarts or new deployments.
+
 ## Production Database Setup
 
 The application currently uses an in-memory database which resets when the server restarts. For production use, follow these steps to integrate with Vercel KV:
