@@ -37,6 +37,14 @@ const certificates: Record<string, Certificate> = {
     issueDate: '2024-12-10',
     status: 'revoked',
     email: 'bob.johnson@example.com'
+  },
+  'CERT-4788-5830': {
+    certificateId: 'CERT-4788-5830',
+    studentName: 'Fuad Abdella',
+    courseName: 'Software Engineering',
+    issueDate: '2025-05-03',
+    expiryDate: '2029-06-02',
+    status: 'valid'
   }
 };
 
